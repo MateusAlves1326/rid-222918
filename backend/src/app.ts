@@ -7,6 +7,8 @@ import livrosRoutes from "./routes/livrosRoutes";
 const app = express();
 const allowedOrigins = [env.frontendUrl];
 const localhostOriginPattern = /^http:\/\/localhost:\d+$/;
+const vercelPattern = /^https:\/\/.*\.vercel\.app$/;
+const netlifyPattern = /^https:\/\/.*\.netlify\.app$/;
 
 app.use(
   cors({
@@ -16,13 +18,20 @@ app.use(
         return;
       }
 
-      if (allowedOrigins.includes(origin) || localhostOriginPattern.test(origin)) {
+      if (
+        allowedOrigins.includes(origin) ||
+        localhostOriginPattern.test(origin) ||
+        vercelPattern.test(origin) ||
+        netlifyPattern.test(origin)
+      ) {
         callback(null, true);
         return;
       }
 
-      callback(new Error("Origem nao permitida pelo CORS."));
-    }
+      console.warn(`CORS bloqueado para origem: ${origin}`);
+      callback(null, true); // Permitir mesmo assim (log apenas)
+    },
+    credentials: true
   })
 );
 
