@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { Livro, LivroPayload } from "../types/livro";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const BASE_URL = "/api";
 
 export class LivrosService {
     static getLivros() {
