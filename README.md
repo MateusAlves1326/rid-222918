@@ -4,7 +4,7 @@ Aplicacao full stack para gerenciamento de livros com:
 
 - Front-end em React + Vite + TypeScript + Sass
 - API REST em Node.js + Express + TypeScript
-- Banco de dados PostgreSQL
+- Banco de dados PostgreSQL (local) ou **Supabase** (nuvem)
 
 ## Funcionalidades
 
@@ -104,6 +104,92 @@ DB_NAME=biblioteca
 ```
 
 > **Nota**: Você pode usar `DATABASE_URL` alternamente. O sistema detecta automaticamente qual configuração você está usando.
+
+## Integracao Supabase
+
+### ✅ Supabase já está configurado!
+
+O projeto foi configurado com suporte a **Supabase**. As credenciais estão em `.env` (frontend) e `backend/.env` (backend).
+
+**Credenciais Supabase fornecidas:**
+
+- **URL**: `https://nvxyhonsabakoocilfry.supabase.co`
+- **Chave Pública (anon)**: `sb_publishable_J_3_cO6wvlx44BlY1fqQ8Q_pUrWs8qF`
+
+### Como usar Supabase
+
+#### Frontend (React)
+
+Use `LivrosSupabaseService` para fazer requisições diretas ao Supabase (sem passar pela API):
+
+```typescript
+import { LivrosSupabaseService } from "@/api/LivrosSupabaseService";
+
+// Buscar todos os livros
+const { data: livros } = await LivrosSupabaseService.getLivros();
+
+// Buscar um livro específico
+const { data: livro } = await LivrosSupabaseService.getLivro(1);
+
+// Criar novo livro
+const { data: novoLivro } = await LivrosSupabaseService.createLivro({
+  titulo: "Novo Livro",
+  numero_paginas: 300,
+  isbn: "123456789",
+  editora: "Editora"
+});
+
+// Atualizar livro
+const { data: livroAtualizado } = await LivrosSupabaseService.updateLivro(1, {
+  titulo: "Título Atualizado",
+  numero_paginas: 350,
+  isbn: "123456789",
+  editora: "Editora"
+});
+
+// Deletar livro
+await LivrosSupabaseService.deleteLivro(1);
+```
+
+#### Backend (Node.js)
+
+Use o cliente Supabase no backend:
+
+```typescript
+import { supabase } from "./src/database/supabaseClient";
+
+// Exemplo: buscar livros
+const { data, error } = await supabase
+  .from("livros")
+  .select("*");
+```
+
+### Criar Tabela no Supabase
+
+Se ainda não criou a tabela no Supabase, execute o SQL abaixo no editor SQL do Supabase:
+
+```sql
+CREATE TABLE livros (
+  id BIGSERIAL PRIMARY KEY,
+  titulo TEXT NOT NULL,
+  numero_paginas INTEGER NOT NULL,
+  isbn TEXT NOT NULL UNIQUE,
+  editora TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+```
+
+### Usar API Local + Supabase
+
+Você pode optar por:
+
+1. **Usar a API REST local** (`localhost:3000`) → conecta ao PostgreSQL local
+2. **Usar Supabase diretamente** → Frontend fala direto com Supabase (sem passar pela API)
+
+Mude a importação em seus componentes:
+
+- Para **API local**: use `LivrosService` (axios)
+- Para **Supabase**: use `LivrosSupabaseService` (promise-based)
 
 
 ## Criacao do Banco de Dados
