@@ -1,17 +1,6 @@
-import { getDb } from "./connection";
-
 export async function runMigrations() {
-  const db = await getDb();
-
-  await db.query(`
-    CREATE TABLE IF NOT EXISTS livros (
-      id SERIAL PRIMARY KEY,
-      titulo TEXT NOT NULL,
-      numero_paginas INTEGER NOT NULL,
-      isbn TEXT NOT NULL UNIQUE,
-      editora TEXT NOT NULL
-    );
-  `);
+  console.log("Modo Supabase: nao ha migracoes locais para executar.");
+  console.log("Crie/atualize a tabela livros pelo SQL Editor do Supabase.");
 }
 
 if (process.argv[1] && process.argv[1].includes("migrate.ts")) {

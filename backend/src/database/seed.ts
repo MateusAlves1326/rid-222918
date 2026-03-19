@@ -1,32 +1,45 @@
-import { getDb } from "./connection";
-import { runMigrations } from "./migrate";
+import { supabase } from "./supabaseClient";
 
 async function seed() {
-  await runMigrations();
-  const db = await getDb();
+  const { count, error: countError } = await supabase
+    .from("livros")
+    .select("id", { count: "exact", head: true });
 
-  const countResult = await db.query<{ total: string }>("SELECT COUNT(*) as total FROM livros");
-  const total = Number(countResult.rows[0]?.total ?? 0);
+  if (countError) {
+    throw countError;
+  }
+
+  const total = Number(count ?? 0);
 
   if (total > 0) {
     console.log("Seed ignorado: tabela livros ja possui dados.");
     return;
   }
 
-  await db.query(
-    "INSERT INTO livros (titulo, numero_paginas, isbn, editora) VALUES ($1, $2, $3, $4)",
-    ["O Senhor dos Aneis", 1178, "9788533613379", "HarperCollins"]
-  );
+  const { error: insertError } = await supabase.from("livros").insert([
+    {
+      titulo: "O Senhor dos Aneis",
+      numero_paginas: 1178,
+      isbn: "9788533613379",
+      editora: "HarperCollins"
+    },
+    {
+      titulo: "Clean Code",
+      numero_paginas: 464,
+      isbn: "9780132350884",
+      editora: "Prentice Hall"
+    },
+    {
+      titulo: "Dom Casmurro",
+      numero_paginas: 288,
+      isbn: "9788535910667",
+      editora: "Companhia das Letras"
+    }
+  ]);
 
-  await db.query(
-    "INSERT INTO livros (titulo, numero_paginas, isbn, editora) VALUES ($1, $2, $3, $4)",
-    ["Clean Code", 464, "9780132350884", "Prentice Hall"]
-  );
-
-  await db.query(
-    "INSERT INTO livros (titulo, numero_paginas, isbn, editora) VALUES ($1, $2, $3, $4)",
-    ["Dom Casmurro", 288, "9788535910667", "Companhia das Letras"]
-  );
+  if (insertError) {
+    throw insertError;
+  }
 
   console.log("Seed executado com sucesso: 3 livros inseridos.");
 }

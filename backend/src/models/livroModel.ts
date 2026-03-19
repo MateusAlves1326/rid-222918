@@ -1,46 +1,71 @@
-import { getDb } from "../database/connection";
+import { supabase } from "../database/supabaseClient";
 import type { Livro, LivroPayload } from "../types/livro";
 
+const LIVRO_COLUMNS = "id, titulo, numero_paginas, isbn, editora";
+
+function toInternalError(message: string, error: unknown) {
+  const internal = new Error(message) as Error & { status?: number };
+  internal.status = 500;
+  (internal as Error & { cause?: unknown }).cause = error;
+  return internal;
+}
+
 export async function findAll() {
-  const db = await getDb();
-  const result = await db.query<Livro>("SELECT id, titulo, numero_paginas, isbn, editora FROM livros ORDER BY id DESC");
-  return result.rows;
+  const { data, error } = await supabase.from("livros").select(LIVRO_COLUMNS).order("id", { ascending: false });
+
+  if (error) {
+    throw toInternalError("Erro ao listar livros.", error);
+  }
+
+  return (data as Livro[]) || [];
 }
 
 export async function findById(id: number) {
-  const db = await getDb();
-  const result = await db.query<Livro>("SELECT id, titulo, numero_paginas, isbn, editora FROM livros WHERE id = $1", [id]);
-  return result.rows[0] || null;
+  const { data, error } = await supabase.from("livros").select(LIVRO_COLUMNS).eq("id", id).maybeSingle();
+
+  if (error) {
+    throw toInternalError("Erro ao buscar livro por id.", error);
+  }
+
+  return (data as Livro | null) || null;
 }
 
 export async function findByIsbn(isbn: string) {
-  const db = await getDb();
-  const result = await db.query<Livro>("SELECT id, titulo, numero_paginas, isbn, editora FROM livros WHERE isbn = $1", [isbn]);
-  return result.rows[0] || null;
+  const { data, error } = await supabase.from("livros").select(LIVRO_COLUMNS).eq("isbn", isbn).maybeSingle();
+
+  if (error) {
+    throw toInternalError("Erro ao buscar livro por ISBN.", error);
+  }
+
+  return (data as Livro | null) || null;
 }
 
 export async function create(livro: LivroPayload) {
-  const db = await getDb();
-  const result = await db.query<Livro>(
-    "INSERT INTO livros (titulo, numero_paginas, isbn, editora) VALUES ($1, $2, $3, $4) RETURNING id, titulo, numero_paginas, isbn, editora",
-    [livro.titulo, livro.numero_paginas, livro.isbn, livro.editora]
-  );
+  const { data, error } = await supabase.from("livros").insert(livro).select(LIVRO_COLUMNS).single();
 
-  return result.rows[0] || null;
+  if (error) {
+    throw toInternalError("Erro ao criar livro.", error);
+  }
+
+  return (data as Livro) || null;
 }
 
 export async function update(id: number, livro: LivroPayload) {
-  const db = await getDb();
-  const result = await db.query<Livro>(
-    "UPDATE livros SET titulo = $1, numero_paginas = $2, isbn = $3, editora = $4 WHERE id = $5 RETURNING id, titulo, numero_paginas, isbn, editora",
-    [livro.titulo, livro.numero_paginas, livro.isbn, livro.editora, id]
-  );
+  const { data, error } = await supabase.from("livros").update(livro).eq("id", id).select(LIVRO_COLUMNS).maybeSingle();
 
-  return result.rows[0] || null;
+  if (error) {
+    throw toInternalError("Erro ao atualizar livro.", error);
+  }
+
+  return (data as Livro | null) || null;
 }
 
 export async function remove(id: number) {
-  const db = await getDb();
-  const result = await db.query("DELETE FROM livros WHERE id = $1", [id]);
-  return (result.rowCount ?? 0) > 0;
+  const { data, error } = await supabase.from("livros").delete().eq("id", id).select("id").maybeSingle();
+
+  if (error) {
+    throw toInternalError("Erro ao remover livro.", error);
+  }
+
+  return Boolean(data);
 }

@@ -4,7 +4,7 @@ Aplicacao full stack para gerenciamento de livros com:
 
 - Front-end em React + Vite + TypeScript + Sass
 - API REST em Node.js + Express + TypeScript
-- Banco de dados PostgreSQL (local) ou **Supabase** (nuvem)
+- Banco de dados **Supabase** (nuvem)
 
 ## Funcionalidades
 
@@ -48,7 +48,6 @@ Aplicacao full stack para gerenciamento de livros com:
 
 - Node.js 18+
 - npm
-- PostgreSQL 14+
 
 ## Primeiros Passos
 
@@ -65,16 +64,12 @@ Aplicacao full stack para gerenciamento de livros com:
    ```
 
 3. Configure o arquivo `.env` na raiz (frontend)
-4. Configure o arquivo `backend/.env` (backend) com suas credenciais PostgreSQL
-5. Crie o banco de dados:
-   ```
-   node backend/scripts/create-db.js
-   ```
-6. Execute as migracoes:
+4. Configure o arquivo `backend/.env` (backend) com as credenciais do Supabase
+5. Execute as migracoes (informativo para modo Supabase):
    ```
    npm --prefix backend run migrate
    ```
-7. (Opcional) Insira dados iniciais:
+6. (Opcional) Insira dados iniciais:
    ```
    npm --prefix backend run seed
    ```
@@ -87,6 +82,8 @@ Aplicacao full stack para gerenciamento de livros com:
 
 ```
 VITE_API_URL=http://localhost:3000
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publicavel
 ```
 
 ### Back-end
@@ -96,14 +93,11 @@ VITE_API_URL=http://localhost:3000
 ```
 PORT=3000
 FRONTEND_URL=http://localhost:5173
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=sua_senha_postgres
-DB_NAME=biblioteca
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_KEY=sua_service_role_key
 ```
 
-> **Nota**: Você pode usar `DATABASE_URL` alternamente. O sistema detecta automaticamente qual configuração você está usando.
+> **Nota**: Se necessario, o backend aceita fallback para `SUPABASE_PUBLISHABLE_KEY` quando `SUPABASE_SERVICE_KEY` nao estiver definida.
 
 ## Integracao Supabase
 
@@ -183,8 +177,8 @@ CREATE TABLE livros (
 
 Você pode optar por:
 
-1. **Usar a API REST local** (`localhost:3000`) → conecta ao PostgreSQL local
-2. **Usar Supabase diretamente** → Frontend fala direto com Supabase (sem passar pela API)
+1. **Usar a API REST** (`localhost:3000` em desenvolvimento) → a API usa Supabase no backend
+2. **Usar Supabase diretamente no frontend** → sem passar pela API
 
 Mude a importação em seus componentes:
 
@@ -192,26 +186,21 @@ Mude a importação em seus componentes:
 - Para **Supabase**: use `LivrosSupabaseService` (promise-based)
 
 
-## Criacao do Banco de Dados
+## Criacao da Tabela e Seed
 
-### Opcao 1: Criar automaticamente (recomendado)
+### 1. Crie a tabela no SQL Editor do Supabase
 
-No terminal da raiz do projeto:
+Use a query da secao "Criar Tabela no Supabase".
 
-```
-node backend/scripts/create-db.js
-```
-
-### Opcao 2: Migracoes e Seed
+### 2. Seed (opcional)
 
 No terminal da pasta `backend`:
 
 ```
-npm run migrate
 npm run seed
 ```
 
-Isso cria a tabela `livros` no PostgreSQL e insere 3 livros iniciais.
+Isso insere 3 livros iniciais na tabela `livros` do Supabase.
 
 ## Execucao em Desenvolvimento
 
@@ -305,23 +294,19 @@ Valide os cenarios:
 
 ## Troubleshooting
 
-### Erro de autenticacao PostgreSQL (28P01)
+### Erro de chave invalida no Supabase
 
-Se receber erro `autenticacao do tipo senha falhou para o usuario "postgres"`:
+Se receber erro de autenticacao no Supabase:
 
-1. Verifique as credenciais em `backend/.env`
-2. Confirme que o usuario e senha estao corretos no PostgreSQL
-3. Certifique-se que o PostgreSQL esta rodando
+1. Verifique `SUPABASE_URL` e `SUPABASE_SERVICE_KEY` em `backend/.env`
+2. Em frontend, confirme `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-### Erro "banco de dados nao existe" (3D000)
+### Erro `PGRST205` (relation does not exist)
 
-Se receber erro `nao existe o banco de dados "biblioteca"`:
+Se receber erro de tabela inexistente:
 
-1. Execute o script de criacao de banco:
-   ```
-   node backend/scripts/create-db.js
-   ```
-2. Ou crie manualmente via `psql` ou pgAdmin
+1. Crie a tabela `livros` no SQL Editor do Supabase
+2. Rode `npm --prefix backend run seed` para popular dados iniciais
 
 ## Status de Entrega
 
