@@ -50,6 +50,35 @@ Aplicacao full stack para gerenciamento de livros com:
 - npm
 - PostgreSQL 14+
 
+## Primeiros Passos
+
+1. Instale as dependencias (frontend):
+   ```
+   npm install
+   ```
+
+2. Instale as dependencias (backend):
+   ```
+   cd backend
+   npm install
+   cd ..
+   ```
+
+3. Configure o arquivo `.env` na raiz (frontend)
+4. Configure o arquivo `backend/.env` (backend) com suas credenciais PostgreSQL
+5. Crie o banco de dados:
+   ```
+   node backend/scripts/create-db.js
+   ```
+6. Execute as migracoes:
+   ```
+   npm --prefix backend run migrate
+   ```
+7. (Opcional) Insira dados iniciais:
+   ```
+   npm --prefix backend run seed
+   ```
+
 ## Configuracao de Ambiente
 
 ### Front-end
@@ -67,25 +96,27 @@ VITE_API_URL=http://localhost:3000
 ```
 PORT=3000
 FRONTEND_URL=http://localhost:5173
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/biblioteca
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=sua_senha_postgres
+DB_NAME=biblioteca
 ```
 
-## Instalacao
+> **Nota**: Você pode usar `DATABASE_URL` alternamente. O sistema detecta automaticamente qual configuração você está usando.
 
-### Front-end
-
-```
-npm install
-```
-
-### Back-end
-
-```
-cd backend
-npm install
-```
 
 ## Criacao do Banco de Dados
+
+### Opcao 1: Criar automaticamente (recomendado)
+
+No terminal da raiz do projeto:
+
+```
+node backend/scripts/create-db.js
+```
+
+### Opcao 2: Migracoes e Seed
 
 No terminal da pasta `backend`:
 
@@ -185,6 +216,26 @@ Valide os cenarios:
 - Diretorio de deploy: `backend`
 - Start command: `npm run start`
 - Configurar variaveis de ambiente de `backend/.env.example`
+
+## Troubleshooting
+
+### Erro de autenticacao PostgreSQL (28P01)
+
+Se receber erro `autenticacao do tipo senha falhou para o usuario "postgres"`:
+
+1. Verifique as credenciais em `backend/.env`
+2. Confirme que o usuario e senha estao corretos no PostgreSQL
+3. Certifique-se que o PostgreSQL esta rodando
+
+### Erro "banco de dados nao existe" (3D000)
+
+Se receber erro `nao existe o banco de dados "biblioteca"`:
+
+1. Execute o script de criacao de banco:
+   ```
+   node backend/scripts/create-db.js
+   ```
+2. Ou crie manualmente via `psql` ou pgAdmin
 
 ## Status de Entrega
 
