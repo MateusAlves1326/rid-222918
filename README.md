@@ -105,11 +105,6 @@ SUPABASE_SERVICE_KEY=sua_service_role_key
 
 O projeto foi configurado com suporte a **Supabase**. As credenciais estão em `.env` (frontend) e `backend/.env` (backend).
 
-**Credenciais Supabase fornecidas:**
-
-- **URL**: `https://nvxyhonsabakoocilfry.supabase.co`
-- **Chave Pública (anon)**: `sb_publishable_J_3_cO6wvlx44BlY1fqQ8Q_pUrWs8qF`
-
 ### Como usar Supabase
 
 #### Frontend (React)
@@ -286,6 +281,16 @@ Valide os cenarios:
 - Publish directory: `dist`
 - Variavel de ambiente: `VITE_API_URL` apontando para a API publicada
 
+### Front-end (Vercel)
+
+- Build command: `npm run build`
+- Output directory: `dist`
+- Variaveis de ambiente:
+  - `VITE_API_URL`
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_PUBLISHABLE_KEY`
+- O arquivo `vercel.json` com rewrite SPA ja existe no projeto para evitar erro 404 ao atualizar rotas.
+
 ### API (Render/Railway)
 
 - Diretorio de deploy: `backend`
@@ -301,12 +306,66 @@ Se receber erro de autenticacao no Supabase:
 1. Verifique `SUPABASE_URL` e `SUPABASE_SERVICE_KEY` em `backend/.env`
 2. Em frontend, confirme `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`
 
+### Erro `Sem permissao no Supabase. Verifique as politicas RLS da tabela livros.`
+
+Esse erro indica bloqueio por RLS no Supabase.
+
+Checklist rapido:
+
+1. Em producao, configure `SUPABASE_SERVICE_KEY` no backend (preferivel).
+2. Se estiver usando somente chave anon no backend, configure politicas RLS para `anon`/`authenticated`.
+3. Verifique se a tabela esta em `public.livros`.
+
+Exemplo de politicas para ambiente de desenvolvimento:
+
+```sql
+ALTER TABLE public.livros ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS livros_select ON public.livros;
+DROP POLICY IF EXISTS livros_insert ON public.livros;
+DROP POLICY IF EXISTS livros_update ON public.livros;
+DROP POLICY IF EXISTS livros_delete ON public.livros;
+
+CREATE POLICY livros_select
+ON public.livros
+FOR SELECT
+TO anon, authenticated
+USING (true);
+
+CREATE POLICY livros_insert
+ON public.livros
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+CREATE POLICY livros_update
+ON public.livros
+FOR UPDATE
+TO anon, authenticated
+USING (true)
+WITH CHECK (true);
+
+CREATE POLICY livros_delete
+ON public.livros
+FOR DELETE
+TO anon, authenticated
+USING (true);
+```
+
 ### Erro `PGRST205` (relation does not exist)
 
 Se receber erro de tabela inexistente:
 
 1. Crie a tabela `livros` no SQL Editor do Supabase
 2. Rode `npm --prefix backend run seed` para popular dados iniciais
+
+### Erro 404 ao atualizar pagina em producao (Vercel)
+
+Se a aplicacao abrir em `/livros` mas der 404 ao atualizar:
+
+1. Confirme que o arquivo `vercel.json` foi publicado.
+2. Garanta que o rewrite SPA esteja configurado para direcionar `/(.*)` para `/index.html`.
+3. Execute novo deploy no Vercel.
 
 ## Status de Entrega
 
