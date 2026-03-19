@@ -11,7 +11,11 @@ export function errorHandler(error: HttpError, req: Request, res: Response, next
   const mensagem = status === 500 ? "Erro interno do servidor." : error.message;
 
   if (status === 500) {
-    console.error(error);
+    console.error("Erro interno:", {
+      message: error.message,
+      stack: error.stack,
+      cause: (error as Error & { cause?: unknown }).cause
+    });
   }
 
   return res.status(status).json({ mensagem });
